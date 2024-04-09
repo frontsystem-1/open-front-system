@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>扉開閉スイッチ</title>
+  <style>
+	
+	body {
+	background-color: #f5f5f5;
+	}
+
+	/* ヒーローイメージを包む要素のスタイル */
+	.hero-image {
+	background-size: cover;
+	background-color: #767676;
+	height: 500px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	margin: 20px;
+	height: 230px;
+	padding-bottom: 30px;
+	padding-top: 20px;
+	}
+
+	/* ヒーローイメージ内のテキストのスタイル */
+	.hero-text {
+	width: 100%;
+	font-size: 1rem;
+	font-weight: bold;
+	color: #373636;
+	}
+	
+	.hero-text  h1{
+	color: #ececec;
+	}
+
+	.hero-text button {
+	height: 40px;
+	width: 15%;
+	padding: 3px;
+	background: #ffffff;
+	}
+	.hero-text p {
+	width: 15%;
+	margin-left: 2%;
+	color: #ececec;
+	}
+	
+	.hero-text a {
+	margin-right: 80%;
+	font-size: 13px;
+	height:30px;
+	width: 12%;
+	padding: 3px;
+	}
+	
+	
+	
+	
+	/* Input container */
+
+	.search-container {
+	display: flex;
+	justify-content: space-between;
+	margin: 20px;
+	align-items: flex-end;
+	}
+
+	.search-container .input-container {
+	position: relative;
+	margin: 20px;
+	flex: 1;
+	margin-right: 1rem;
+	width: 10%;
+	}
+	
+	.create-container {
+	background-color: #fff;
+	margin-top: 30px;
+	margin-left: 20%;
+	margin-right: 20%;
+	padding: 40px;		
+	border-radius: 10px;
+	box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+	height: 100%;
+	}
+	
+	.create-container .input-container {
+	position: relative;
+	margin: 20px;
+	width: 80%;
+	height: 100%;
+	}
+	
+	.search-container #post_record {
+	display: flex;
+	width:100%;
+	align-items: flex-end;
+	}
+	
+	.create-container #post_record {
+	width:100%;
+	margin-top: 50px;
+	height: 100%;
+	}
+
+
+	/* Input field */
+	.input-field {
+	display: block;
+	width: 100%;
+	padding: 10px;
+	font-size: 16px;
+	border: none;
+	border-bottom: 2px solid #ccc;
+	outline: none;
+	background-color: transparent;
+	color: #373636;
+	}
+	
+	select {
+	margin-top:5.5px;
+	}
+	
+	input[type="date"] {
+	margin-top: 5px;  
+	}
+	
+	input[type="time"] {
+	margin-top: 1.8px;
+	}
+
+	/* Input label */
+	.input-label {
+	position: absolute;
+	top: 0;
+	left: 0;
+	font-size: 16px;
+	color: rgba(204, 204, 204, 0);
+	pointer-events: none;
+	transition: all 0.3s ease;
+	}
+
+	/* Input highlight */
+	.input-highlight {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	height: 2px;
+	width: 0;
+	background-color: #007bff;
+	transition: all 0.3s ease;
+	}
+
+	/* Input field:focus styles */
+	.input-field:focus + .input-label {
+	top: -20px;
+	font-size: 12px;
+	color: #007bff;
+	}
+
+	.input-field:focus + .input-label + .input-highlight {
+	width: 100%;
+	}
+	
+	.index_btn {
+	display: flex;
+	width: 90px;
+	}
+
+	button,
+	input[type="submit"] {
+	padding: 15px 25px;
+	border: unset;
+	border-radius: 15px;
+	color: #373636;
+	z-index: 1;
+	background: #ffffff;
+	position: relative;
+	font-weight: 1000;
+	font-size: 17px;
+	-webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+	box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+	transition: all 250ms;
+	overflow: hidden;
+	height: 50px;
+	margin-top: 17px;
+	}
+
+	button::before,
+	input[type="submit"]::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 0;
+	border-radius: 15px;
+	//background-color: #212121;
+	z-index: -1;
+	-webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+	box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+	transition: all 250ms
+	}
+
+	button:hover,
+	input[type="submit"]:hover {
+	color: #e8e8e8;
+	}
+
+	button:hover::before,
+	input[type="submit"]:hover::before {
+	width: 100%;
+	}
+	
+	.sign_out_btn {
+	margin-right: 60%;
+	}
+	
+	h2 {
+	  font-size: 30px;
+	  margin: 0;
+	  color: #373636;
+	}
+
+	.container {
+	max-height: 300px; /* 表示する高さを指定 */
+	margin: 50px;
+	overflow-y: scroll;
+	}
+	
+	
+	.entry {
+	background-color: #ffffff; 
+	border-radius: 10px;
+	box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+	padding: 20px;
+	margin: 10px;
+	padding-top:10px;
+	}
+	
+
+	.entry div {
+	  display: flex; 
+	  align-items: center;
+	  margin-bottom: 10px
+	}
+
+	.entry h2 {
+	  font-size: 20px;
+	  margin: 0;
+	  color: #373636;
+	}
+
+	.entry p {
+	  font-size: 16px;
+	  margin: 0;
+	  color: #888888
+	}
+	
+	.entry hr {
+	  margin: 0;
+	  margin-bottom: 5px;
+	}
+
+	nav {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: #ffffff;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	border-radius: 8px;
+	padding: 1rem;
+	margin: 20px;
+	}
+
+	nav ul {
+	list-style: none;
+	display: flex;
+	margin: 0;
+	padding: 0;
+	}
+
+	nav li {
+	margin: 0 0.5rem;
+	}
+
+	nav a {
+	color: #333;
+	font-size: 1rem;
+	font-weight: 600;
+	text-decoration: none;
+	padding: 0.5rem;
+	border-radius: 8px;
+	transition: all 0.2s ease-in-out;
+	}
+
+	nav a:hover {
+	background-color: #f2f2f2;
+	}
+        
+        /* homeページのデザイン */
+
+    .all {
+    position: relative;
+    }
+
+	.close-icon {
+	margin: 0;
+	font-size: 2rem;
+	width: 5%;
+	}
+
+
+	#goOutValue {
+	position: absolute;
+    z-index: 2;
+	background-color: #fff;
+	width:60%;
+	margin-right: 25%;
+	margin-left: 15%;
+	padding: 1%;
+	padding-bottom: 1%;
+	padding-top: 0;
+	border-radius: 10px;
+	box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+	text-align: center;
+	}
+
+	.go-out-btn {
+	margin: 0;
+	width: 30%;
+	}
+
+	#goOutValue .input-container {
+	position: relative;
+	width: 90%;
+	}
+
+	#spaceSchedule {
+	position: absolute;
+    z-index: 2;
+	background-color: #fff;
+	width:70%;
+	margin-right: 25%;
+	margin-left: 15%;
+	padding: 2%;
+	padding-bottom: 2%;
+	padding-top: 0;
+	border-radius: 10px;
+	box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+	}
+	#spaceSchedule .container {
+	margin-bottom: 0;
+	}
+
+    #spaceSchedule .input-container {
+	position: relative;
+	display: flex;
+	padding-bottom:0;
+    }  
+
+    #spaceSchedule .input-container .input-field {
+    height: 100%;
+    width: 100%;
+    }
+
+	#spaceSchedule .input-container .space-element {
+   	margin: 0;
+	padding: 0;
+	margin-right: 2%;
+	margin-left: 2%;
+	width: 15%;
+	font-size: 90%;
+   	 }
+	
+	#spaceSchedule .input-container .input-label {
+	margin-top: 2%;
+	}
+
+    #conditionalElement {
+    position: absolute;
+    z-index: 2; /* 最も上に表示される要素 */
+    width:50%;
+    background-color: #fff;
+	margin-top: 30px;
+    margin-left: 20%;
+    margin-right: 30%;
+	padding: 2%;
+	padding-bottom: 1%;
+	padding-top: 0;
+	border-radius: 10px;
+	box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+	height: 50%;
+    }
+
+	#conditionalElement .input-container {
+		position: relative;
+	}
+
+    #conditionalElement .input-container .input-field {
+    height: 100%;
+    width: 100%;
+	margin-top: 3%;
+    }
+
+    #staffRoom {
+    position: absolute;
+    z-index: 2; /* 最も上に表示される要素 */
+    width:50%;
+    background-color: #fff;
+        margin-top: 30px;
+    margin-left: 20%;
+    margin-right: 30%;
+        padding: 2%;
+        padding-bottom: 1%;
+        padding-top: 0;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        height: 65%;
+    }
+
+        #staffRoom .input-container {
+                position: relative;
+        }
+
+    #staffRoom .input-container .input-field {
+    height: 100%;
+    width: 100%;
+        margin-top: 3%;
+    }
+
+	#createSpaceValue {
+	position: absolute;
+    z-index: 2; /* 最も上に表示される要素 */
+    width:50%;
+    background-color: #fff;
+	margin-top: 30px;
+    margin-left: 20%;
+    margin-right: 30%;
+	padding: 2%;
+	padding-bottom: 5%;
+	padding-top: 0;
+	border-radius: 10px;
+	box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+	height: 30%;
+	}
+
+	#createSpaceValue .input-container {
+		position: relative;
+	}
+	
+
+    .list_container {
+    display: flex;
+    justify-content: center;
+    height: 680px;
+    }
+	
+    .resident_row {
+    width: 90%;
+    height: 100%;
+    }
+    .space-row {
+    height: 680px;
+    width: 10%;
+    margin-left: 5px;
+    }
+
+	.space-container {
+	/* max-height: 100%; 表示する高さを指定 */
+	overflow-y: scroll;
+	}
+
+    .resident-btn {
+    width: 5.7%;
+    #width: 5.6%;
+    padding: 0;
+    margin: 0;
+    height: 10%;
+    }
+    
+    .resident-btn p {
+    margin: 0;
+    font-size: 60%;
+    }
+
+    .resident-btn-none-value {
+    color: #ffffff;
+    }
+    
+    .resident-btn-none-value:hover,
+    input[type="submit"]:hover {
+    color: #ffffff;
+    }
+
+    .space-btn {
+    width: 100%;
+    padding: 0;
+    height: 5%;
+    font-size: 8%;
+    }
+
+	.selected {
+        color: #fff;
+	background-color: black;
+        }
+
+	#selectCancel {
+	margin-bottom: 10px;
+	}
+		
+	#calendarView {
+	position: absolute;
+    	z-index: 2;
+        background-color: #fff;
+        width:90%;
+	margin-right:6%;
+	margin-left: 4%;
+        padding: 1%;
+        padding-bottom: 1%;
+        padding-top: 0;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        text-align: center;
+	}
+	
+	#calendarView .input-container {
+	display: flex;
+	width: 90%;
+	}
+	
+	#calendarView .input-field {
+	margin: 2%;
+	margin-top: 0;
+	margin-bottom: 0;
+	height: 50%;
+	margin-top: 3%;
+	padding: 0;
+	}
+	
+	#calendarView .input-label {
+	margin-top: 7%;
+	margin-left: 3%;
+	//padding-bottom: 2%;
+	}
+	
+	#calendarView button {
+	width: 15%;
+	margin: 2%;
+	margin-top: 0;
+	}
+		
+	#calendarTable {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px;
+	background-color: black;
+        }
+
+        #calendarTable, th, td {
+            border: 1px solid #dddddd;
+            padding: 8px;
+            position: relative;
+	    font-size: 10px;
+        }
+
+	#calendarTable, tr {
+	width: 95%;
+	}
+
+         #calendarTable, th {
+            background-color: #fff;
+        }
+
+        /* mailページのデザイン */
+	.mail-container {
+	display: flex;
+        justify-content: space-between;
+        align-items: center;
+	}
+	
+	#mailView .mailScroll {
+        max-height: 300px; /* 表示する高さを指定 */
+        overflow-y: scroll;
+	margin: 20px;
+        }
+
+	#mailView h3 {
+	margin: 0;
+	margin-left: 3%;
+	}
+	
+	#mailView .mailText {
+	margin: 0;
+	}
+
+	#mailView button {
+	margin: 0;
+	padding: 0;
+	width: 10%;
+	height: 10%;
+	}
+	
+	#mailView .mail-button {
+        width: 15%;
+	padding: 2%;
+        }
+	
+	#mailView .input-container {
+	width:40%;
+	}
+	
+	/* settingページのデザイン */
+	.select-button {
+	display: flex;
+	}
+
+	.select-button button {
+	margin: 5px;
+	}
+	
+	#settingView .input-container {
+        width: 60%;
+	position: relative;
+	}
+	
+	.new-resident {
+        padding-top: 0;
+	margin-top: 3%;
+        }
+	
+	#settingView .space-select {
+        display: flex;
+        }
+	
+	#settingView .space-select button {
+	width: 30%;
+	margin-left: 2%;
+	}
+	
+	#settingView .input-container .input-highlight {
+	position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 2px;
+        width: 0;
+        background-color: #007bff;
+        transition: all 0.3s ease;
+	}
+
+	/* ローディングデザイン */	
+	#Loading {
+	position: absolute;
+	background-color: #fff;
+	z-index: 2;
+	width:50%;
+	margin: 25%;
+	margin-top: 10%;
+	border-radius: 10px;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        text-align: center;
+	}
+	
+	/* indexページの記録更新  */
+	#updateRecord {
+	margin: 0;
+	align-items: flex-end;
+	height: 10%;
+	padding: 0;
+	}
+	
+	#updateRecord button {
+	padding: 1%;
+	width: 10%;
+	height: 100%;
+	font-size: 75%;
+	margin: 0;
+	margin-bottom: 2.5%;
+	}
+	
+	#updateRecord h3 {
+        margin: 0;
+        margin-bottom: 6%;
+        }
+	
+	#updateRecord .input-container {
+	width: 17%;
+    	bottom: 0;
+	}
+	
+	/* 記録のupdateボタン  */
+	.update-record-button {
+	padding: 1%;
+        width: 10%;
+        height: 100%;
+        font-size: 75%;
+        margin: 0;
+	}
+	
+	/* 記録ないの初期登録時間  */
+ 	.entry .first_time {
+	font-size: 80%;
+	}
+	
+  </style>    
+</head>
+<body>
+
+   <div class="hero-image">
+	   
+      <div class="hero-text">
+		<button class="sign_out_btn" onclick="sign_out()">ログアウト</button>
+		
+		<p>{{login_staff[1]}}<p>
+        <h1>Front </h1>
+        <button onclick="home_url()">ホーム</button>
+        <!--
+        <button onclick="create_url()">新規</button>
+        <button onclick="update_url()">更新</button>
+        -->
+        <button onclick="index_url()">入退館記録</button>
+        <button onclick="signup_url()">新規職員</button>
+	<button onclick="setting_url()">各種設定</button>
+        <template></template>
+        <p id="ua"></p>
+      </div>
+  </div>  
+  <div class="body">
+	<div id="Loading" style="display:none;">
+        <p class="loadmsg">
+          処理中...<br>
+          しばらくお待ち下さい。
+        </p>
+  	</div>
+	{% block content %}{% endblock %}
+  </div>
+<script>
+    let day = new Date();
+    
+    
+    function make_day(day) {
+      day.setDate(day.getDate());
+      let yyyy = day.getFullYear();
+      let mm = ('0' + (day.getMonth() + 1)).slice(-2);
+      let dd = ('0' + day.getDate()).slice(-2);
+      return yyyy + '-' + mm + '-' + dd;
+    }
+    page_value = make_day(day)
+    
+    
+    function page_update() {
+			document.getElementById("Loading").style.display = "block";  //ﾒｯｾｰｼﾞのDIV要素をｽﾀｲﾙｼｰﾄのdisplayﾌﾟﾛﾊﾟﾃｨで非表示から表示へ変更します
+        		document.getElementById("Loading").style.top = 150
+        		document.getElementById("Loading").style.left = (document.body.clientWidth - 300) / 2;	
+    }
+    
+    function sign_out() {
+			sendData('ログアウト')
+			window.location.href = window.location.origin + '/' + {{staff_id|tojson}} + '/sign_out'
+	}
+    function home_url() {
+    			sendData('home')
+			page_update()
+			window.location.href = window.location.origin + '/' + {{staff_id|tojson}} + '/home'
+    }
+    function index_url() {
+			sendData('index')
+			page_update()
+			window.location.href = window.location.origin + '/' + {{staff_id|tojson}} + '/' + page_value + '/-1/all_record'
+	}
+    function setting_url() {
+                        sendData('setting')
+			page_update()
+                        window.location.href = window.location.origin + '/' + {{staff_id|tojson}} + '/setting'
+        }
+    
+
+	function create_url() {
+			sendData('create')
+			page_update()
+			window.location.href = window.location.origin +'/' + {{staff_id|tojson}} + '/create'
+	}
+	function update_url() {
+			sendData('update')
+			page_update()
+			window.location.href = window.location.origin +'/' + {{staff_id|tojson}} + '/update'
+	}
+	function signup_url() {
+			sendData('sign_up')
+			page_update()
+			window.location.href = window.location.origin +'/' + {{staff_id|tojson}} + '/sign_up'
+			
+	}
+	window.addEventListener('beforeunload', function(event) {
+	  sendData('ページ移動')
+	});
+	
+	window.addEventListener('load', function(event) {
+	  sendData('更新')
+	});
+	window.addEventListener('unload', function(event) {
+	  sendData('クローズ')
+	  console.log('close')
+	  event.preventDefault()
+	});
+	
+    function sendData(status) {
+      var data = status;
+      console.log(status)
+      
+      fetch('http://'+ '192.168.0.22'+ '/' + {{staff_id|tojson}} + '/sign_out', {
+        method: 'POST',
+         headers: {
+          'Content-Type': 'application/json' // リクエストヘッダーのContent-Type
+        },
+        body: JSON.stringify(data) // リクエストボディにデータをJSON形式で指定
+        })
+        .then(response => response.json()) // レスポンスをJSON形式で解析
+        .then(data => {
+          // レスポンスデータを処理
+          console.log(data);
+        })
+        .catch(error => {
+          // エラーハンドリング
+          console.error('Error:', error);
+      });
+    }
+	
+</script>
+</body>
+</html>
