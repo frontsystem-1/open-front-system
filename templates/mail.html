@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="create-container">
+<h2>郵便物</h2>
+<div id="mailView">
+	<div class="mail-container">
+	<div class="input-container">
+		<!-- 入居者選択 -->
+		<select class="input-field"  id="residentId">
+			<option value="-1">氏名を選択</option>
+			{% for resident in residents %}
+			<option value="{{resident[0]}}">{{resident[1]}}</option>
+			{% endfor %}
+		</select>
+	        <label for="input-field" class="input-label">名前</label>
+	</div>
+	<div class="input-container">
+		<!-- 状態選択 -->
+		<select class="input-field"  id="mailStatus">
+		        <option value="all_record">状態を選択</option>
+		        <option value="keep">未遂</option>
+		        <option value="complete">完了</option>
+		</select>
+		<label for="input-field" class="input-label">状態</label>
+	</div>
+	<button class="mail-button"  onClick="serchMail()">検索</button>
+	</div>
+<div class="mailScroll">
+<!-- 郵便物一覧 -->
+{% for mail in all_mail %}
+<p class="mailText">{{mail[7]}}様 日付:{{mail[4]}} 備考:{{mail[2]}} 確認:{{mail[3]}}</p>
+<p class="mailText">受け渡し担当:{{mail[6]}} 
+{% if mail[5] == 'keep' %}受け渡し:未遂   <button onClick="mailComplete('{{mail[0]}}')">完了</button> <!-- 受け取り完了用のボタン-->
+{% elif mail[5] == 'complete' %}受け渡し:完了 
+{% endif %}
+</p>
+<hr>
+{% endfor %}
+</div>
+</div>
+{{ pagination.links }}
+<script>
+    var staff_name = {{login_staff[1]|tojson}}	
+    var li_btn = document.getElementsByTagName('li');
+    var active_page = document.getElementsByClassName('active');
+    var disabled_btn = document.getElementsByClassName('disabled');
+
+　　 //liタグがページのため、各ページにidを設定している
+    Array.from(li_btn).forEach(function(li,index) {
+      li.id = (index);
+    });
+
+    var page_len = li_btn.length - 2 
+    console.log('disabled class ')
+    console.log(disabled_btn[0] != li_btn[0])
+    li_btn[0].parentNode.removeChild(li_btn[0])
+    if (li_btn.length >= 2) {
+      console.log(li_btn[page_len])
+      li_btn[page_len].parentNode.removeChild(li_btn[page_len])
+    }
+	// 完了ボタンが押されたら、その郵便物のidと押した職員の名前をswitch_app.pyにpost。元のデータを更新する
+	function mailComplete(mail_id) {
+            var post_data = {
+                mail_id: mail_id,
+                staff_name: staff_name,
+                status: 'complete',
+            }
+            fetch('/home_submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(post_data)
+            });
+	　　 alert('更新しました')
+	　　 window.location.href = window.location.origin + '/' + {{staff_id|tojson}} + '/mail/-1/all_record'
+        }
+	//入居者名・状態を受け取り、それをURLにいれjavascript側からswitch_app.pyにpostする。python側でそのURLに対応した関数が呼び出される
+	function serchMail() {
+	    var resident_id = document.getElementById('residentId').value
+	    var mail_status = document.getElementById('mailStatus').value
+	    window.location.href = window.location.origin + '/' + {{staff_id|tojson}} + '/mail/' + resident_id + '/' + mail_status
+	}
+</script>
+{% endblock %}
