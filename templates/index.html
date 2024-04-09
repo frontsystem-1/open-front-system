@@ -1,0 +1,339 @@
+{% extends "layout.html" %} 
+
+{% block content %}
+  <div>
+      <br>
+      <div class="search-container">
+        <div class="input-container">
+          <input class="input-field" id="flask_day" type="date">
+          <label for="input-field" class="input-label">日付</label>
+        </div>
+        <div class="input-container">
+          <select class="input-field" name="resident_id" id="resident_id">
+            <option value=-1>選択してください</option>
+            {% for resident in residents %}
+              <option value="{{ resident[0] }}">{{ resident[1] }}様</option>
+            {% endfor %}
+          </select>
+          <label for="input-field" class="input-label">氏名</label>
+        </div>
+        <div class="input-container">
+          <select class="input-field" name="resident_id" id="return_check">
+            <option value="all_record">状態を選択</option>
+            <option value="return">帰館</option>
+            <option value="no_return">未帰館</option>
+          </select>
+          <label for="input-field" class="input-label">状態</label>
+        </div>
+
+        <button onClick="search_record()"> 検索
+        </button>
+      </div>
+      <div class="search-container">
+        <div id="post_record">
+        <div class="input-container">
+          <select class="input-field" id="go_out"  name="go_out">
+            <option value="go">出発</option>
+            <option value="return">帰館</option>
+          </select>
+          <label for="input-field" class="input-label">状態</label>
+        </div>
+        <div class="input-container">
+          <input class="input-field" type="date" id="today" name="door_date">
+          <label for="input-field" class="input-label">日付</label>
+        </div>
+        <div class="input-container">
+          <input class="input-field" type="time" id="door_time"  name="door_time" value="{{local_time}}">
+          <label for="input-field" class="input-label">時間</label>
+        </div>
+        <div class="input-container">
+          <select class="input-field" id='select_resident_id'  name="select_resident_id" placeholder="名前" required>
+            <option value=''>氏名を選択</option>
+            {% for resident in residents %}
+            <option value="{{ resident[0] }}{{ resident[4] }}">{{ resident[1] }}様</option>
+            {% endfor %}
+          </select>
+          <label for="input-field" class="input-label">氏名</label>
+        </div>
+        
+      </div>
+      <button class="index_btn" onClick="do_post()">登録</button>
+      </div>
+      <div id="updateRecord" class="search-container" style="display: none;">
+	<h3>記録更新</h3>
+	<input id="go_first_time" style="display: none;">
+	<input id="return_first_time" style="display: none;">
+	<input id="go_id" style="display:none;">
+	<input id="return_id" style="display:none;">
+	<input id="resident_name" style="display: none;">
+	<div class="input-container">
+		<input class="input-field" type="datetime-local" id="go_time">
+		<label class="input-label">外出時間</label>
+
+	</div>
+	<div class="input-container">
+		<input class="input-field" type="datetime-local" id="return_time">
+		<label class="input-label">帰宅時間</label>
+	</div>
+	<div class="input-container">
+		<input  class="input-field"type="text" id="reason"></input>
+		<label class="input-label">備考</label>	
+	</div>
+	<button onclick="post_update_record()">更新</button>
+      </div>
+      <hr>
+      <div class="container">
+        {% for day_record in today %}
+        {% if day_record[5] != None  and day_record[1] != None and day_record[15] == 0 and day_record[5].strftime("%Y-%m-%d %H:%M:%S")[11:19] == '00:00:00' %}
+	<div class="entry" style="background-color: #abcdef;">
+	      <p class="first_time">初期登録時間  外出時間:{{day_record[11]}} 帰宅時間:記録なし   更新時間:{{day_record[4]}}</p>
+	      <hr>
+              <h2>{{ day_record[0] }}様:  備考:{% if day_record[3] != '' %}{{day_record[3]}}{% endif %}</h2>
+	      <p>記入者:{% if day_record[2] != None %} {{day_record[2]}} {% endif %}</p>
+              <p>外出時間:{{ day_record[1] }}   帰館時間:記録なし
+	      <button class="update-record-button"  onClick="record_update('{{day_record[1]}}','{{day_record[5]}}','{{day_record[3]}}','{{day_record[7]}}','{{day_record[9]}}','{{day_record[10]}}','{{day_record[0]}}')">更新</button>
+              </p>
+	</div>
+	 {% elif day_record[5] != None and day_record[1] != None and day_record[15] == 1 and  day_record[5].strftime("%Y-%m-%d %H:%M:%S")[11:19] == '00:00:00'  %}
+        <div class="entry">
+              <p class="first_time">初期登録時間  外出時間:{{day_record[11]}} 帰宅時間:記録なし   更新時間:{{day_record[4]}}</p>
+              <hr>
+              <h2>{{ day_record[0] }}様:  備考:{% if day_record[3] != '' %}{{day_record[3]}}{% endif %}</h2>
+              <p>記入者:{% if day_record[2] != None %} {{day_record[2]}} {% endif %}</p>
+              <p>外出時間:{{ day_record[1] }}   帰館時間:別記録に記載
+              <button class="update-record-button"  onClick="record_update('{{day_record[1]}}','{{day_record[5]}}','{{day_record[3]}}','{{day_record[7]}}','{{day_record[9]}}','{{day_record[10]}}','{{day_record[0]}}')">更新</button>
+              </p>
+        </div>
+	{% elif day_record[5] != None %}
+        <div class="entry">
+	      {% if day_record[13] != None and day_record[14] != None%}
+                <p class="first_time">初期登録時間  外出時間:{{day_record[11]}} 帰宅時間:{{day_record[12]}} 更新時間:{% if day_record[4] == None or day_record == Null %}
+                {{day_record[8]}}
+                {% elif day_record[4] != None or day_record != Null %}
+                {{day_record[4]}}
+
+                {% endif %}</p>
+		<hr>
+		<h2>{{ day_record[0] }}様: 備考:{% if day_record[3] != '' and day_record[3] != None %}
+                {{day_record[3]}}
+                {% elif day_record[3] == '' or day_record[3] == None and day_record[7] != None %}
+                {{day_record[7]}}
+                {% endif %}</h2>
+		
+                <p>記入者:{% if day_record[2] != None %}{{day_record[2]}} {% elif day_record[2] == None and day_record[6] != Null and day_record[6] != None %}{{day_record[6]}}{% endif %}</p>
+		<p>外出時間:{% if day_record[1].strftime("%Y-%m-%d %H:%M:%S")[11:19] != '00:00:00'  %}{{ day_record[1] }}{% else  %}記録なし{% endif  %} 
+		帰館時間:{{ day_record[5] }}
+                <button class="update-record-button"  onClick="record_update('{{day_record[1]}}','{{day_record[5]}}','{{day_record[3]}}','{{day_record[7]}}','{{day_record[9]}}','{{day_record[10]}}','{{day_record[0]}}')">更新</button>
+		</p>
+		{% endif %}
+        </div>
+	{% endif %}
+        {% endfor %}
+      </div>
+        {{ pagination.links }}
+  <script>
+    
+    let today = new Date();
+    let flask_day = new Date({{day_value|tojson}});
+
+    function make_day(day) {
+      day.setDate(day.getDate());
+      let yyyy = day.getFullYear();
+      let mm = ('0' + (day.getMonth() + 1)).slice(-2);
+      let dd = ('0' + day.getDate()).slice(-2);
+      return yyyy + '-' + mm + '-' + dd;
+    }
+    
+
+    flask_day = make_day(flask_day)
+    document.getElementById('flask_day').value = {{page_value|tojson}};
+    document.getElementById('today').value = {{page_value|tojson}}
+     if ({{page_value|tojson}} == flask_day + ' ') {
+      document.getElementById('today').value = ({{page_value|tojson}}).slice(0,-1)
+    }
+    document.getElementById('resident_id').value = {{resident_data|tojson}}
+    document.getElementById('return_check').value = {{return_check|tojson}}
+    console.log(document.getElementById('flask_day').value)
+    if(!document.getElementById('flask_day').value) {
+      document.getElementById('flask_day').value = make_day(today)
+    }
+    
+    
+    
+    var page_value = document.getElementById('flask_day').value
+    var resident_id = document.getElementById('resident_id').value
+    var return_check = document.getElementById('return_check').value
+    
+    function search_record() {
+      window.addEventListener('beforeunload', function(event) {
+        fetch('/' + {{staff_id|tojson}} + '/sign_out', {
+        method: 'POST', // リクエストメソッド
+        headers: {
+          'Content-Type': 'application/json' // リクエストヘッダーのContent-Type
+        },
+        body: JSON.stringify('検索') // リクエストボディにデータをJSON形式で指定
+        })
+        .then(response => response.json()) // レスポンスをJSON形式で解析
+        .then(data => {
+          // レスポンスデータを処理
+          console.log(data);
+        })
+        .catch(error => {
+          // エラーハンドリング
+          console.error('Error:', error);
+        });
+      });
+      page_update()
+      window.location.href = window.location.origin + '/' + {{staff_id|tojson}} + '/'+ document.getElementById('flask_day').value + '/' + document.getElementById('resident_id').value + '/' + document.getElementById('return_check').value
+    }
+    var li_btn = document.getElementsByTagName('li');
+    var active_page = document.getElementsByClassName('active');
+    var disabled_btn = document.getElementsByClassName('disabled');
+    
+    Array.from(li_btn).forEach(function(li,index) {
+      li.id = (index);
+    });
+      
+    for(var i = 0; i < li_btn.length; i++) {
+        li_btn[i].addEventListener('click', function(event) {
+          page_record(event,active_page[0].id)
+        });
+    };
+    var page_len = li_btn.length - 2
+    console.log('disabled class ')
+    console.log(disabled_btn[0] != li_btn[0])
+    li_btn[0].parentNode.removeChild(li_btn[0])
+    if (li_btn.length >= 2) {
+      console.log(li_btn[page_len])
+      li_btn[page_len].parentNode.removeChild(li_btn[page_len])
+    }
+    
+    function page_record(event,page) {
+        
+        fetch('/' + {{staff_id|tojson}} + '/sign_out', {
+        method: 'POST', // リクエストメソッド
+        headers: {
+          'Content-Type': 'application/json' // リクエストヘッダーのContent-Type
+        },
+        body: JSON.stringify('page') // リクエストボディにデータをJSON形式で指定
+        })
+        .then(response => response.json()) // レスポンスをJSON形式で解析
+        .then(data => {
+          // レスポンスデータを処理
+          console.log(data);
+        })
+        .catch(error => {
+          // エラーハンドリング
+          console.error('Error:', error);
+        });
+      }
+      
+      function add_form_post_record() {
+        fetch('/' + {{staff_id|tojson}} + '/sign_out', {
+        method: 'POST', // リクエストメソッド
+        headers: {
+          'Content-Type': 'application/json' // リクエストヘッダーのContent-Type
+        },
+        body: JSON.stringify('add_record') // リクエストボディにデータをJSON形式で指定
+        })
+      }
+      
+      function do_post() {
+	var post_data = {
+	go_out: document.getElementById('go_out').value,
+	door_date: document.getElementById('today').value,
+	door_time: document.getElementById('door_time').value,
+	select_resident_id: document.getElementById('select_resident_id').value	
+        };
+        fetch('/'+{{staff_id|tojson}}+'/'+document.getElementById('flask_day').value+'/-1/all_record', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(post_data)
+        })
+        .then(response => {
+        if (response.ok) {
+            alert('登録しました。')
+            page_update();
+            window.location.href = window.location.origin + '/' + {{staff_id|tojson}} + '/' + document.getElementById('flask_day').value + '/' + document.getElementById('resident_id').value + '/' + document.getElementById('return_check').value
+
+        } else {
+            console.error('Response failed:', response.status);
+        }
+        })
+        .catch(error => {
+        console.error('Error:', error);
+        });
+	//add_form_post_record();
+      }
+      
+      function record_update(go_time,return_time,reason1,reason2,go_id,return_id,resident_name) {
+	document.getElementById('updateRecord').style.display = 'flex'
+	document.getElementById('go_first_time').value = go_time
+	document.getElementById('return_first_time').value = return_time 
+	document.getElementById('go_id').value = go_id
+	document.getElementById('return_id').value = return_id
+	document.getElementById('go_time').value = go_time
+	document.getElementById('return_time').value = return_time
+	
+	if (document.getElementById('go_first_time').value == ''){
+            console.log('None go time')
+            document.getElementById('go_first_time').value = go_time
+        } else if (document.getElementById('return_first_time').value == '') {
+             console.log('None return time')
+            document.getElementById('return_first_time').value = return_time
+        }
+	if (reason2 == 'None') {
+		document.getElementById('reason').value = reason1
+	} else {
+		document.getElementById('reason').value = reason2
+	}
+	document.getElementById('resident_name').value = resident_name
+      }
+      
+      function post_update_record() {
+	if (document.getElementById('go_first_time').value == 'None'){
+            console.log('None go time')
+            document.getElementById('go_first_time').value = document.getElementById('go_time').value
+        } else if (document.getElementById('return_first_time').value == 'None') {
+             console.log('None return time')
+            document.getElementById('return_first_time').value = document.getElementById('return_time').value
+        }
+	console.log(document.getElementById('return_first_time').value)
+	console.log(document.getElementById('return_time').value)
+	var post_data = {
+        resident_name: document.getElementById('resident_name').value,
+        go_id: document.getElementById('go_id').value,
+        return_id: document.getElementById('return_id').value,
+        go_time: document.getElementById('go_time').value,
+        return_time: document.getElementById('return_time').value,
+        reason: document.getElementById('reason').value,
+	go_first_time: document.getElementById('go_first_time').value,
+	return_first_time: document.getElementById('return_first_time').value
+	};
+	fetch('/record_update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(post_data)	
+	})
+	.then(response => {
+        if (response.ok) {
+            document.getElementById('updateRecord').style.display = 'none';
+	    alert('登録しました。')
+            page_update();
+            window.location.href = window.location.origin + '/' + {{staff_id|tojson}} + '/' + document.getElementById('flask_day').value + '/' + document.getElementById('resident_id').value + '/' + document.getElementById('return_check').value;
+        } else {
+            console.error('Response failed:', response.status);
+        }
+	})
+    	.catch(error => {
+        console.error('Error:', error);
+    	});
+      }
+      
+    
+  </script>
+  {% endblock %}
