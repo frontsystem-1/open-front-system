@@ -1,0 +1,579 @@
+{% extends "layout.html" %} 
+
+{% block content %}
+   
+    <div>
+	<div class="all">
+	<!-- 入居者選択した後に出るタブ -->
+        <div id="goOutValue" style="display: none;">
+        <p class="close-icon" onClick="goOutReset()">×</p>
+        <h3><div id="resident_name"></h3>
+        <button class="go-out-btn" onClick="pushGoOutData('go')">外出</button>
+        <button class="go-out-btn" onClick="pushGoOutData('return')">帰館</button>
+	<button class="go-out-btn" onClick="pushMail()" >郵便</button>
+        <div class="input-container">
+        <input class="input-field" id="goOutReason" type="text" list="input_sub"  placeholder="備考">
+        <label for="input-field" class="input-label">備考</label>
+        <datalist id="input_sub">
+		{%for remark in remarks  %}
+		<option value="{{remark[1]}}">{{remark[1]}}</option>
+		{% endfor  %}
+        </datalist>
+        </div>
+        </div>
+	<!-- カレンダー -->
+	<div id="calendarView" style="display: none;">
+	    <p class="space-element close-icon" onClick="scheduleReset()">×</p>
+	    <div class="input-container">
+		<input class="input-field" type="month" id="calendarMonth">
+        	<label for="input-field" class="input-label">年月</label>
+		<button onClick="calendarSelect()">検索</button>
+            </div>
+	    <table id="calendarTable">
+            <thead>
+            <tr>
+                <th>日</th>
+                <th>月</th>
+                <th>火</th>
+                <th>水</th>
+                <th>木</th>
+                <th>金</th>
+                <th>土</th>
+            </tr>
+            </thead>
+            <tbody id="calendarBody"></tbody>
+            </table>
+
+	</div>
+	<!-- スペース利用状況 -->
+        <div id="spaceSchedule" style="display: none;">
+            <p class="space-element close-icon" onClick="scheduleReset()">×</p>
+            <div class="input-container">
+                <input class="input-field" id="rentalDate" type="date" value="{{day}}">
+                <label for="input-field" class="input-label">日付選択</label>
+                <button class="space-element" onClick="dateChange()">日付変更</button>
+            </div>
+            <h3>利用予定</h3>
+            <div class="container">
+            {% for space in space_data %}
+                {% if space[0] == None %}
+                <p>使用者:{{space[1]}}</p>
+                {% elif space[1] == None %}
+                <p>使用者:{{space[0]}}様</p>
+                {% endif %}
+                <p>開始時間:{{space[2]}}</p>
+                <p>終了時間:{{space[3]}}</p>
+                <p>備考:{{space[4]}}</p>
+                <hr>
+            {% endfor %}
+            </div>
+	    <button class="space-element" onClick="staffRentalRoom()">職員登録</button>
+        </div>
+	<!-- メール機能 フロントシステムでは使っていない -->
+	<div id="mailView" style="display: none;">
+ 		<p class="close-icon" onClick="mailReset()">×</p>
+                <h3>郵便物</h3>
+		<input type="month" id="mailMonth">
+		<button>検索</button>
+		<div class="mailScroll">
+		{% for mail in all_mail %}
+			<p class="mailText">{{mail[7]}}様 日付:{{mail[4]}} 備考:{{mail[2]}} 確認:{{mail[3]}}</p>
+			<p class="mailText">
+			受け渡し担当:{{mail[6]}} 
+			{% if mail[5] == 'keep' %}受け渡し:未遂   <button onClick="mailComplete('{{mail[0]}}')">完了</button>
+			{% elif mail[5] == 'complete' %}受け渡し:完了
+			{% endif %}
+			</p>
+			<hr> 
+		{% endfor %}		
+		</div>
+	</div>
+	<!-- 職員のスペース登録 -->
+	<div id="staffRoom" style="display: none;">
+                <p class="close-icon" onClick="staffRoomReset()">×</p>
+                <h3>利用時間</h3>
+		<div class="input-container">
+          	<select class="input-field" id="staffId">
+            	<option value=''>選択してください</option>
+	        {% for staff in staff_data %}
+		<option value="{{staff[0]}}">{{staff[1]}}</option>
+          	{% endfor %}
+		</select>
+         	<label for="input-field" class="input-label">氏名</label>
+        	</div>
+                <div class="input-container">
+                <input class="input-field" id="startStaffTime" type="datetime-local">
+                <label for="input-field" class="input-label">開始時間</label>
+                </div>
+                <div class="input-container" >
+                <input class="input-field" id="endStaffTime" type="datetime-local">
+                <label for="input-field" class="input-label">終了時間</label>
+                </div>
+                <div class="input-container" >
+                <input class="input-field" id="staffReason" type="text" placeholder="備考">
+                <label for="input-field" class="input-label">備考</label>
+                </div>
+                <button onClick="postRental()">登録</button>
+	</div>
+	<!-- 入居者のスペース登録機能 -->
+        <div>
+            <div id="conditionalElement" style="display: none;">
+                <p class="close-icon" onClick="dateReset()">×</p>
+                <h3>利用時間</h3>
+                <div>
+                <div class="input-container">
+                <input class="input-field" id="startDateTime" type="datetime-local">
+                <label for="input-field" class="input-label">開始時間</label>
+                </div>
+                <div class="input-container" >
+                <input class="input-field" id="endDateTime" type="datetime-local">
+                <label for="input-field" class="input-label">終了時間</label>
+                </div>
+                <div class="input-container" >
+                <input class="input-field" id="reason" type="text" placeholder="備考">
+                <label for="input-field" class="input-label">備考</label>
+                </div>
+                <button onClick="postRental()">登録</button>
+                </div>
+            </div>
+        </div>
+        <button id="selectCancel" onclick="goOutReset()" style="display: none;">選択解除</button>
+	<!-- 入居者一覧 -->
+        <div class="list_container">		
+            <div class="resident_row">
+            {% for data_item in all_data[::-1] %}
+            {% for value in data_item %}
+		{% if value[1] in go_resident %}
+                <button class="resident-btn" onclick="pushResidentData('{{value[0]}}','{{value[1]}}',this)" ondblclick="goOutReset()" style="background-color: #abcdef;"">{{value[2]}} {{value[1]|replace('　', '<br>')}}様</button>
+		{% elif value[1] == 'None' or value[6] == 'not_exist'%}	
+		<button class="resident-btn resident-btn-none-value">0000 データ なし</button>
+		{% else %}
+                <button class="resident-btn" onclick="pushResidentData('{{value[0]}}','{{value[1]}}',this)" ondblclick="goOutReset()">{{value[2]}} {{value[1]|replace('　', '<br>')}}様</button>
+            	{% endif %}	
+	    {% endfor %}
+		<hr>
+            {% endfor %}
+            </div>
+	    <!-- 右側タブ -->
+            <div class="space-row space-container">
+	    <button class="space-btn" onClick="mailCheck()">郵便一覧</button>
+	    <button class="space-btn" onClick="calendarPage(currentMonth)">一覧</button>
+	    <!-- 登録してあるスペース一覧 -->
+            {% for space_name in all_space %}
+            <button class="space-btn" onClick="pushSpaceData('{{space_name[1]}}')">{{space_name[1]}}</button>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+    <script>
+        var resident_id = ''
+        var resident_name = ''
+        var space_name = ''
+        var go_out = ''
+        var today = ''
+        var lastClickedButton = null;
+	var staff_name = {{login_staff[1]|tojson}}
+
+        // 現在の日時を取得
+        var now = new Date();
+
+        // 年月日時分を2桁表示にしてフォーマット
+        var year = now.getFullYear();
+        var month = ('0' + (now.getMonth() + 1)).slice(-2);
+        var day_data = ('0' + now.getDate()).slice(-2);
+        var hours = ('0' + now.getHours()).slice(-2);
+        var minutes = ('0' + now.getMinutes()).slice(-2);
+	var currentMonth = year + '-' + month //年月
+        var currentDate =  year + '-' + month + '-' + day_data //年月日
+        var currentDateTime = year + '-' + month + '-' + day_data + ' ' + hours + ':' + minutes + ':00'; //年月日時
+	console.log(document.getElementById('staffId').value)
+	//月の最初の日付を取得
+	var firstDay = new Date(year, month - 1, 1);
+
+        // 月の最終日を取得
+        var lastDay = new Date(year, month, 0);
+	//個々のスペース名がURLに入ってるのであれば、そのスペーシの使用状況タブをは表示する
+        if (window.location.href == window.location.origin + '/' + {{staff_id|tojson}} + '/' + {{space_name|tojson}} + '/' +currentDate) {
+            document.getElementById('spaceSchedule').style.display = 'block';
+        } 
+	//dayがswitch_app.pyから送られてきていれば、todayに代入し、それをさらにidがrentalDateのタグに代入。共有スペースのタブも表示する
+        if ({{day|tojson}} != '') {
+            today = {{day|tojson}}
+            console.log(today)
+            document.getElementById("rentalDate").value = today
+            document.getElementById('spaceSchedule').style.display = 'block';
+        }
+
+        // input要素のvalue属性に設定
+        document.getElementById('startDateTime').value = currentDateTime;
+        document.getElementById('endDateTime').value = currentDateTime;
+	document.getElementById('calendarMonth').value = {{select_month|tojson}};
+        document.addEventListener("DOMContentLoaded", function() {
+            // ボタン内のテキストを取得
+            var buttons = document.querySelectorAll('.resident-btn');
+            buttons.forEach(function(button) {
+                var buttonText = button.innerText;
+
+                // スペースごとに分割して新しい段落要素を作成
+                var paragraphs = buttonText.split(/ +/).map(function(word) {
+                    return '<p>' + word + '</p>';
+                });
+
+                // 新しい段落要素をボタンに挿入
+                button.innerHTML = paragraphs.join('');
+            });
+        });
+	// もしURLに年月とカレンダーが入っていたら、spaceCalendar()を実行しカレンダータブを表示する
+	if (window.location.href == window.location.origin + '/' + {{staff_id|tojson}} + '/' + document.getElementById('calendarMonth').value + '/calendar') {
+            spaceCalendar(document.getElementById('calendarMonth').value)
+        }
+	//入居者が選択されたら、選択された入居者用の入退館・郵便タブと入居者選択解除ボタンを表示させる
+        function pushResidentData(value1,value2,button) {
+            resident_id = value1
+            resident_name = value2
+            document.getElementById('resident_name').textContent = value2
+            console.log('select :' + resident_id)
+            document.getElementById('goOutValue').style.display = 'block';
+            document.getElementById('selectCancel').style.display = 'block';
+
+            // 前回のボタンからクラスを削除
+            if (lastClickedButton) {
+                lastClickedButton.classList.remove("selected");
+            }
+
+            // クリックされたボタンにクラスを追加
+            button.classList.add("selected");
+
+            // 最後にクリックされたボタンを更新
+            lastClickedButton = button;
+	    
+        }
+	//送られてきた年月の共有スペース使用状況をカレンダー状にして表示する
+	function spaceCalendar(select_month) {
+	    console.log(select_month)
+	    document.getElementById('calendarView').style.display = 'block';
+            document.getElementById('goOutValue').style.display = 'none' //入退館・郵便記録は記録は非表示にする
+	    // カレンダーのボディ要素を取得
+	    var space_rental_all = {{space_rental_all|tojson}}
+	    var month_value = select_month.split('-')
+	    var divided_year = month_value[0]
+	    var divided_month = month_value[1]
+	    
+            var calendarBody = document.getElementById("calendarBody");
+
+            // Dateオブジェクトを使用して指定された年月の1日の情報を取得
+            var firstSelectDay = new Date(divided_year, divided_month - 1, 1);
+
+            // 月の最終日を取得
+            var lastSelectDay = new Date(divided_year, divided_month, 0);
+
+            // 月の日数を取得
+            var totalDays = lastSelectDay.getDate();
+
+            // カレンダーのHTMLを構築
+            var calendarHTML = "<tr>";
+            for (var i = 0; i < firstSelectDay.getDay(); i++) {
+                calendarHTML += "<td></td>";
+	    }
+
+            for (var day = 1; day <= totalDays; day++) {
+                var matchingReservations = [];
+
+                // 日付を文字列としてフォーマット（yyyy-mm-dd）
+                var dateString = divided_year + '-' + (divided_month < 10 ? '0' + divided_month : divided_month) + '-' + (day < 10 ? '0' + day : day);
+                // 予約データと日付が一致するか確認
+                space_rental_all.forEach(function (reservation) {
+		    var reservation_month = new Date(reservation[6]).getUTCMonth() + 1;
+		    if (reservation_month >= 10) {
+			    var rental_day = new Date(reservation[6]).toISOString().split('T')[0]
+		    } else if (reservation_month < 10) {
+		            //↑のやり方だと1から9月までの記録は+1日で表示されてしまうため、↓の処理をしてreservation[6]の表示を-1日している
+        	            var dateObject = new Date(reservation[6])
+                	    var rental_day = new Date(dateObject.getUTCFullYear(), dateObject.getUTCMonth(), dateObject.getUTCDate()).toISOString().split('T')[0];
+		    }
+		    var calendar_day = new Date(dateString).toISOString().split('T')[0];
+                    if (rental_day === calendar_day) {
+                        matchingReservations.push(reservation);
+                    }
+                });
+
+                // カレンダーのセルを追加
+                calendarHTML += '<td>' + day + '日'
+                // 重複する予約データを表示
+                matchingReservations.forEach(function (reservation) {
+		    startDate = new Date(reservation[6]).toISOString().replace('T', ' ').slice(11, 16);
+                    endDate = new Date(reservation[3]).toISOString().replace('T', ' ').slice(11, 16);
+		    if(reservation[1] == 'resident') {
+                    calendarHTML += '<hr>' + reservation[9] + '様 ' + '<br>'  + reservation[7] + '<br>' + startDate + "/" + endDate + '<br>'  + ' 備考:' + reservation[4];
+                    } else if(reservation[1] == 'staff') {
+		    calendarHTML += '<hr>' + reservation[8] + '<br>'  +  reservation[7] + '<br>' + startDate + "/" + endDate + '<br>' + ' 備考:' + reservation[4];
+		    }
+		});
+
+                calendarHTML += '</td>';
+
+                if ((firstSelectDay.getDay() + day) % 7 === 0) {
+                    calendarHTML += "</tr><tr>";
+                }
+            }
+            calendarHTML += "</tr>";
+            // カレンダーをボディに追加
+            calendarBody.innerHTML = calendarHTML;
+	}
+	//送られてきたスペース名と現在の日付をURLに載せてswitch_app.pyにpostする。そしてその日のスペースの利用状況を表示する
+        function pushSpaceData(value) {
+            space_name = value
+            console.log('select :' + space_name)
+            if (go_out != '') {
+                go_out = ''
+            }
+            if (resident_name == '') {
+                window.location.href = '/' + {{staff_id|tojson}} + '/' + space_name + '/' +  currentDate;
+            }
+            if (resident_name !=  '' && space_name != '') {
+		// スペース使用状況タブを表示させて、入退館・郵便タブは非表示にする
+                document.getElementById('conditionalElement').style.display = 'block';
+                document.getElementById('goOutValue').style.display = 'none'
+            }
+        }
+
+	//共有スペース使用状況度を非表示にして、職員の共有スペース登録画面に切り替える
+	function staffRentalRoom() {
+		if(window.location.href !=  window.location.origin + '/' + {{staff_id|tojson}} + '/home') {
+			space_name ={{space_name|tojson}}	
+			document.getElementById('spaceSchedule').style.display = 'none';
+			document.getElementById('staffRoom').style.display = 'block';
+                	document.getElementById('startStaffTime').value = currentDateTime
+                	document.getElementById('endStaffTime').value = currentDateTime
+		}
+	}
+	//カレンダーを表示している際、年月を選択する機能
+	function selectMonth() {
+		var month_value = document.getElementById('calendarMonth').value
+		spaceCalendar(month_value) //選択した年月をURLに組み込み、スペース使用状況を呼び出す
+		document.getElementById('calendarView').style.display = 'block';
+	}
+	//入退館記録登録
+        function pushGoOutData(value) {
+            if (resident_name == '') {
+                alert('入居者様を選択して下さい')
+                return
+            }
+            go_out = value //外出か帰宅かを引数から受け取りgo_outに格納する
+            console.log('select :' + go_out)
+            if (space_name != '') { //共有スペースが選択されていたら、その選択を解除する
+                space_name = ''
+            }
+            var post_data = { //switch_app.pyにpostするデータ
+                resident_id: resident_id,
+                go_out: go_out,
+                go_out_reason: document.getElementById('goOutReason').value,
+		staff_name: staff_name,
+            };
+            console.log(post_data)
+            fetch('/home_submit', { //switch_app.pyの/home_submit用の関数で処理する
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(post_data)
+        });
+        alert(resident_name + '様の記録を登録しました。')
+        resident_id = ''
+        resident_name = ''
+	//登録後は入退館記録タブと入居選択解除ボタンを非表示に戻す
+        document.getElementById('resident_name').textContent = ''
+        document.getElementById('goOutValue').style.display = 'none';
+        document.getElementById('goOutReason').value = '';
+        document.getElementById('selectCancel').style.display = 'none';
+        if (lastClickedButton) {
+                lastClickedButton.classList.remove("selected");
+            }
+	)
+	window.location.href = '/' + {{staff_id|tojson}} + '/home';
+        }
+	//職員のスペース登録タブを非表示にする
+	function staffRoomReset() {
+            document.getElementById('staffRoom').style.display = 'none';
+	    document.getElementById('staffId').value = '';
+	    document.getElementById('startStaffTime').value = ''
+            document.getElementById('startStaffTime').value = currentDateTime
+            document.getElementById('endStaffTime').value = currentDateTime
+            space_name = ''
+	}
+	//使用していない
+        function dateChange() {
+            var change_date = document.getElementById('rentalDate').value
+            console.log(change_date)
+	    page_update()
+            window.location.href = '/' + {{staff_id|tojson}} + '/' + {{space_name|tojson}} + '/' + change_date;
+        }
+	//入退館・郵便入力タブを非表示にする。入居者は選択されたまま
+        function goOutReset() {
+            document.getElementById('goOutValue').style.display = 'none'
+            resident_id = ''
+            resident_name = ''
+            document.getElementById("resident_name").textContent = ''
+            document.getElementById('selectCancel').style.display = 'none';
+            document.getElementById('conditionalElement').style.display = 'none';
+            document.getElementById('startDateTime').value = currentDateTime
+            document.getElementById('endDateTime').value = currentDateTime
+            document.getElementById('reason').value = ''
+            document.getElementById('goOutReason').value = '';
+            
+            if (lastClickedButton) {
+                lastClickedButton.classList.remove("selected");
+            }
+        }
+	//使用していない
+        function createSpacetReset() {
+        document.getElementById('createSpaceValue').style.display = 'none'
+        document.getElementById('newSpaceName').value = ''
+
+        }
+	//個々の共有スペース使用状況タブを非表示にするために、ただのホームページに戻る
+        function scheduleReset() {
+            window.location.href = '/' + {{staff_id|tojson}} + '/home';
+        }
+	//使用していない
+	function mailCheck() {
+	page_update()
+	window.location.href = '/' + {{staff_id|tojson}} + '/mail/-1/all_record';   
+	}
+
+	//スペースと利用者(もしくは職員)を選択し、switch_app.pyにpost。そこでレンタルスペースデータを登録する
+	function postRental() {
+	    console.log('go_out: ' + go_out)
+	    var post_check = ''
+	    console.log('staff_room check')
+            console.log(document.getElementById('staffRoom').style.display != 'none');
+	    var post_start_date = document.getElementById('startDateTime').value //レンタル開始時間
+            var post_end_date = document.getElementById('endDateTime').value //レンタル終了時間
+	    var now_date_time = year + '-' + month + '-' + day_data + 'T' + hours + ':' + minutes;
+	    if (document.getElementById('staffRoom').style.display != 'none') {
+		//職員のスペース登録画面なら、レンタル開始・終了時間を職員用のものに変える
+		var post_start_date = document.getElementById('startStaffTime').value
+		var post_end_date = document.getElementById('endStaffTime').value
+	    }
+	    console.log(post_start_date)
+	    console.log(post_end_date)
+	    console.log(now_date_time)
+	　　 //現在時刻よりも前の記録を入れようとしているとアラートで確認する
+	    if (post_start_date < now_date_time || post_end_date < now_date_time) {
+		var result = confirm('現在時刻より前の時間に登録しようとしています。このまま登録を続けますか？')
+        	// 'いいえ'が選択された場合
+            	if (!result) {
+                	alert("キャンセルしました");
+                	return;
+            	}
+	    }
+	    for (var i in {{db_check|tojson}}) { // db_checkは現在時刻よりも先の時間に登録してあるスペースのデータ達
+		var check = {{db_check|tojson}}[i]
+		var check_name = check[0]
+		console.log(check_name)
+		var check_start = new Date(check[1]);
+		var check_end = new Date(check[2])
+		var start_date = check_start.toISOString()
+		var check_start_date = start_date.split('T')[0] + 'T' + start_date.split('T')[1].slice(0,-8);
+		var end_date = check_end.toISOString()
+		var check_end_date = end_date.split('T')[0] + 'T' + end_date.split('T')[1].slice(0,-8);
+	        
+		// 範囲1の終了時刻が範囲2の開始時刻より前で、範囲1の開始時刻が範囲2の終了時刻より後でなければ重複している
+		console.log('staff only rental error')
+		console.log(space_name == check_name && check_end_date >= post_start_date && check_start_date <= post_end_date)
+		if (space_name == check_name && check_end_date >= post_start_date && check_start_date <= post_end_date) {
+		console.log('return')
+		alert(space_name + 'は'+ check_start_date + '〜' + check_end_date + 'で既に登録されています')
+		post_check = 'post'
+		break
+		}
+	    }
+	    //重複していないデータであればデータをポストする
+	    if (post_check != 'post') {	
+	    var post_data = {
+	        resident_id: resident_id,
+                space_name: space_name,
+                rental_start_time: document.getElementById('startDateTime').value,
+                rental_end_time: document.getElementById('endDateTime').value,
+                reason: document.getElementById('reason').value,
+                staff_id: document.getElementById('staffId').value,
+                staff_rental_start: document.getElementById('startStaffTime').value,
+                staff_rental_end: document.getElementById('endStaffTime').value,
+                staff_reason: document.getElementById('staffReason').value,
+		go_out: '',
+            }
+	    fetch('/home_submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(post_data)
+       	     });
+	    alert('登録しました。')
+	    document.getElementById('conditionalElement').style.display = 'none';
+	    document.getElementById('startDateTime').value = currentDateTime;
+	    document.getElementById('endDateTime').value = currentDateTime;
+	    document.getElementById('staffRoom').style.display = 'none';
+	    document.getElementById('staffId').value = '';
+	    document.getElementById('startStaffTime').value = currentDateTime;
+	    document.getElementById('endStaffTime').value = currentDateTime;
+	    document.getElementById('reason').value = '';
+	    resident_id = '';
+	    post_check = '';
+	    if (lastClickedButton) {
+                lastClickedButton.classList.remove("selected");
+            }
+	    window.location.href = '/' + {{staff_id|tojson}} + '/home';
+	    }
+	}
+	//使っていない
+        function submitData() {
+            var post_data = {
+                resident_id: resident_id,
+                space_name: space_name,
+                rental_start_time: document.getElementById('startDateTime').value,
+                rental_end_time: document.getElementById('endDateTime').value,
+                reason: document.getElementById('reason').value,
+		staff_id: document.getElementById('staffId').value,
+		staff_rental_start: document.getElementById('startStaffTime').value,
+	        staff_rental_end: document.getElementById('endStaffTime').value,
+	        staff_reason: document.getElementById('staffReason').value,
+                go_out: go_out,
+                create_space: document.getElementById('newSpaceName').value,
+		login_staff_id: {{login_staff[0]|tojson}}
+            };
+            console.log(post_data)
+            fetch('/home_submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(post_data)
+        });
+        document.getElementById('conditionalElement').style.display = 'none';
+        document.getElementById('createSpaceValue').style.display = 'none';
+        document.getElementById('selectCancel').style.display = 'none';
+        document.getElementById('startDateTime').value = currentDateTime;
+        document.getElementById('endDateTime').value = currentDateTime;
+        document.getElementById('staffRoom').style.display = 'none';
+	document.getElementById('staffId').value = '';
+        document.getElementById('startStaffTime').value = currentDateTime;
+        document.getElementById('endStaffTime').value = currentDateTime;
+        document.getElementById('reason').value = '';
+        document.getElementById('staffReason').value = '';
+        document.getElementById('goOutReason').value = '';
+        resident_id = '';
+        space_name = '';
+        go_out = '';
+        resident_name = '';
+        document.getElementById("resident_name").textContent = '';
+        document.getElementById('newSpaceName').value = '';
+        if (lastClickedButton) {
+                lastClickedButton.classList.remove("selected");
+        }
+        }
+	
+
+
+    </script>
+  {% endblock %}
