@@ -1,0 +1,402 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div id="settingView">
+        <div class="input-container space-select">
+            <select class="input-field"  id="select_space">
+                <option value="">共有スペースを選択</option>
+                {% for space in space_data  %}
+                <option value="{{space[1]}}">{{space[1]}}</option>
+                {% endfor  %}
+            </select>
+	    <label for="input-field" class="input-label">共有スペース</label>
+	    <button onclick="settingSpace('new')">新規</button>
+            <button onclick="settingSpace('update')">更新</button>
+            <button onclick="settingSpace('delete')">削除</button>
+        </div>
+	<br>
+	<div class="input-container space-select">
+	 <select class="input-field" id="select_remark">
+                <option value="">備考テンプレート選択</option>
+                {% for remark in remarks  %}
+                <option value="{{remark[1]}}">{{remark[1]}}</option>
+                {% endfor  %}
+            </select>
+            <label for="input-field" class="input-label">備考テンプレート</label>
+            <button onclick="settingRemark('new')">新規</button>
+            <button onclick="settingRemark('update')">更新</button>
+            <button onclick="settingRemark('delete')">削除</button>
+            </select>
+	</div>
+	<hr>
+	<p id="select_resident_value"></p>
+
+	<div class="input-container">
+	  <input class="input-field new-resident" id='last_name' placeholder="苗字" required='required' style="display: none;">
+          <label for="input-field" class="input-label">苗字</label>
+	</div>
+	<div class="input-container">
+          <input class="input-field new-resident"  id='first_name' placeholder="名前" required='required' style="display: none;">
+          <label for="input-field" class="input-label">名前</label>
+        </div>
+	<input id='resident_id' style="display: none;">
+	<input id='room_number' style="display: none;">
+	<input type='number' id="number" style="display: none;">
+	<div class="input-container">
+          <select class="input-field new-resident" id="status" style="display: none;">
+	  	<option value="">選択して下さい</option>
+		<option value="一人外出可能">一人外出可能</option>
+		<option value="一人外出可能(一部)">一人外出可能(一部)</option>
+		<option value="一人外出不可能">一人外出不可能</option>
+	  </select>
+          <label for="input-field" class="input-label">状態</label>
+	  <button id="submit" onclick="updateResident()" style="display: none;">登録</button>
+	</div>
+	
+        <div class="input-container">
+	  <select class="input-field"  id="move_select" style="display: none;">
+          	<option value="">選択して下さい</option>
+        	{% for resident in move_resident %}
+               	<option value="{{resident}}">
+                {{resident[2]}}/{{resident[3]}}:
+                {% if resident[1] == 'None'  %} 空き
+                {% else %} {{resident[1]}} {% endif %}</option>
+        	{% endfor %}
+           </select>
+          <label for="input-field" class="input-label">部屋</label>
+ 	  <button id="submit_move" onclick="moveResident()" style="display: none;">移動</button>
+        </div>
+	<input type='text' id="name" style="display: none;">
+
+	<div class="select-button">
+	<button id="create" onclick="createView()" style="display: none;">新規登録</button>
+	<button id="update_status" onclick="updateView()" style="display: none;">更新</button>
+	<button id="move" onclick="moveView()" style="display: none;">部屋移動</button>
+	<button id="disappear"  onclick="disappearResident()" style="display: none;">退去</button>
+	</div>
+	
+</div>
+<div class="list_container">
+            <div class="resident_row">
+            {% for data_item in all_data[::-1] %}
+            {% for value in data_item %}
+                {% if value[1] == 'None' or value[6] == 'not_exist' %}
+       		<button class="resident-btn resident-btn-none-value" onclick="selectResident('not_exist','{{value[0]}}','{{value[1]}}','{{value[2]}}','{{value[3]}}','{{value[4]}}')">0000 データ なし</button>
+                {% else %}
+                <button class="resident-btn" onclick="selectResident('exist','{{value[0]}}','{{value[1]}}','{{value[2]}}','{{value[3]}}','{{value[4]}}')">{{value[2]}} {{value[1]|replace('　', '<br>')}}様</button>
+                {% endif %}
+            {% endfor %}
+            <hr>
+            {% endfor %}
+            </div>
+</div>
+<script>
+	var select_resident_value = '';
+	
+        document.addEventListener("DOMContentLoaded", function() {
+            // ボタン内のテキストを取得
+            var buttons = document.querySelectorAll('.resident-btn');
+            buttons.forEach(function(button) {
+                var buttonText = button.innerText;
+                // スペースごとに分割して新しい段落要素を作成
+                var paragraphs = buttonText.split(/ +/).map(function(word) {
+                    return '<p>' + word + '</p>';
+                });
+                // 新しい段落要素をボタンに挿入
+                button.innerHTML = paragraphs.join('');
+            });
+        });
+		
+	function selectResident(compare,resident_id,name,number,room_num,status) {
+	if (name != 'None') {
+	document.getElementById('select_resident_value').innerText = '選択:' + number + ' ' + name + '様'
+	} else if (name == 'None') {
+	document.getElementById('select_resident_value').innerText = '選択:' + number + ' 空き部屋'
+	}
+	var name_array = name.split(/\s+/)
+	console.log('name_array',name_array)
+	var last_name = name_array[0]
+	var first_name = name_array[1]
+	if (name_array[0] == 'None') {
+		last_name = ''
+		first_name = ''
+	}
+	document.getElementById('create').style.display = 'none';
+	document.getElementById('update_status').style.display = 'none';
+	document.getElementById('submit_move').style.display = 'none';
+        document.getElementById('move').style.display = 'none';
+        document.getElementById('disappear').style.display = 'none';
+	document.getElementById('first_name').style.display = 'none';
+	document.getElementById('last_name').style.display = 'none';	
+        document.getElementById('number').style.display = 'none';
+        document.getElementById('status').style.display = 'none';
+	document.getElementById('submit').style.display = 'none';
+        document.getElementById('move_select').value = '';
+        document.getElementById('move_select').style.display = 'none';
+	
+	document.getElementById('last_name').value = last_name
+	document.getElementById('first_name').value = first_name
+	document.getElementById('number').value = number
+	document.getElementById('room_number').value = room_num
+	document.getElementById('status').value = status
+	if(status == 'None') {
+	document.getElementById('status').value = ''
+	}
+	document.getElementById('resident_id').value = resident_id
+	console.log(document.getElementById('resident_id').value)
+	console.log((document.getElementById('first_name').value))
+	if(compare == 'exist') {
+		document.getElementById('update_status').style.display = 'block';
+	        document.getElementById('move').style.display = 'block';
+	        document.getElementById('disappear').style.display = 'block';
+	} else if(compare == 'not_exist') {
+		document.getElementById('create').style.display = 'block';
+	}
+	}
+	
+	function createView() {
+	document.getElementById('create').style.display = 'none';
+	document.getElementById('update_status').style.display = 'none';
+        document.getElementById('move').style.display = 'none';
+        document.getElementById('disappear').style.display = 'none';
+	document.getElementById('first_name').style.display = 'block';
+	document.getElementById('last_name').style.display = 'block';
+	document.getElementById('number').style.display = 'none';
+	document.getElementById('status').style.display = 'block';
+	document.getElementById('submit').style.display = 'block';
+	}	
+
+	function updateResident() {
+	if (document.getElementById('first_name').value == '' || document.getElementById('number').value == '' 
+	|| document.getElementById('status').value == '') {
+	alert('値を入力して下さい')
+	return
+	}
+	var post_data = {
+		post_status: 'update',
+		resident_id: document.getElementById('resident_id').value,
+		name:  document.getElementById('last_name').value + '　'  + document.getElementById('first_name').value,
+		number: document.getElementById('number').value,
+		room_number: document.getElementById('room_number').value,
+		status: document.getElementById('status').value
+            }
+	    console.log(post_data)
+            fetch('/setting_update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(post_data)
+            }).then(res => {
+	    alert('更新しました')
+	    page_update()
+	    window.location.href = '/' + {{staff_id|tojson}} + '/setting';
+	    })
+	}
+	
+        function updateView() {
+        document.getElementById('create').style.display = 'none';
+        document.getElementById('update_status').style.display = 'none';
+        document.getElementById('move').style.display = 'none';
+        document.getElementById('disappear').style.display = 'none';
+        document.getElementById('last_name').style.display = 'none';
+	document.getElementById('first_name').style.display = 'none';
+        document.getElementById('number').style.display = 'none';
+        document.getElementById('status').style.display = 'block';
+        document.getElementById('submit').style.display = 'block';
+	document.getElementById('move_select').value = '';
+	document.getElementById('move_select').style.display = 'none';
+
+        }
+
+	function disappearResident() {
+	var result = confirm(document.getElementById('last_name').value + '　' + document.getElementById('first_name').value + "様を退去させますか？");
+	// 'いいえ'が選択された場合
+    	if (!result) {
+		alert("キャンセルしました");
+		return;
+    	}
+	var post_data = {
+		post_status: 'disappear',
+		resident_id: document.getElementById('resident_id').value,
+		number: document.getElementById('number').value,
+		room_number:  document.getElementById('room_number').value,
+		status: document.getElementById('status').value
+	}
+	fetch('/setting_update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(post_data)
+            }).then(res => {
+            alert('更新しました')
+	    page_update()
+            window.location.href = '/' + {{staff_id|tojson}} + '/setting';
+            })
+	}
+	
+	function moveView() {
+	document.getElementById('create').style.display = 'none';
+        document.getElementById('update_status').style.display = 'none';
+        document.getElementById('move').style.display = 'none';
+        document.getElementById('disappear').style.display = 'none';
+        document.getElementById('last_name').style.display = 'none';
+	document.getElementById('first_name').style.display = 'none';
+        document.getElementById('number').style.display = 'none';
+        document.getElementById('status').style.display = 'none';
+	document.getElementById('move_select').style.display = 'block'
+        document.getElementById('submit_move').style.display = 'block';
+	}
+	
+	function moveResident() {
+	var move_data_str = document.getElementById('move_select').value
+	var move_data = document.getElementById('move_select').value.match(/\d+|'[^']*'|"[^"]*"/g).map(e => e.replace(/^['"]|['"]$/g, '').replace(/\\u3000/g, '　')).map(e => !isNaN(e) ? parseFloat(e) : e);
+
+	console.log(move_data)
+	console.log(move_data[3])
+
+	var post_data = {
+                post_status: 'move',
+		resident_id: document.getElementById('resident_id').value,
+		name: document.getElementById('last_name').value + '　' + document.getElementById('first_name').value,
+                number: document.getElementById('number').value,
+                room_number:  document.getElementById('room_number').value,
+                status: document.getElementById('status').value,
+                move_id: move_data[0],
+		move_name: move_data[1],
+                move_number: move_data[2],
+                move_room_number: move_data[3],
+                move_status: move_data[4]
+        }
+        fetch('/setting_update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(post_data)
+            }).then(res => {
+            alert('更新しました')
+	    page_update()
+            window.location.href = '/' + {{staff_id|tojson}} + '/setting';
+            })
+	}
+
+        
+        function settingSpace(status) {
+	var update_space_name = ''
+	var new_space_name = ''
+	if (status == 'new') {
+                var input = prompt("共有スペース名")
+                if (!input) {
+                        alert("キャンセルしました")
+                        return
+                }else if (input != '') {
+                        new_space_name = input
+                } else if (input == '') {
+                        alert("入力して下さい")
+                        return
+                }
+	} else if (document.getElementById('select_space').value == '') {
+		alert("共有スペースを選択して下さい")
+		return
+	} else if (status == 'delete') {
+		var result = confirm(document.getElementById('select_space').value + "を削除しますか？");
+        	// 'いいえ'が選択された場合
+        	if (!result) {
+                	alert("キャンセルしました");
+                	return;
+        	}
+	} else if (status == 'update') {
+        	var input = prompt("共有スペース名:")
+		if (!input) {
+                        alert("キャンセルしました")
+                        return
+                }else if (input != '') {
+			update_space_name = input
+                } else if (input == '') {
+			alert("入力して下さい")
+			return
+		}
+	}
+        
+        var post_data = {
+            space_status: status,
+            space_name: document.getElementById('select_space').value,
+	    update_space_name: update_space_name,
+	    new_space_name: new_space_name,
+        }
+        fetch('/setting_space', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(post_data)
+            }).then(res => {
+            alert('更新しました')
+	    page_update()
+            window.location.href = '/' + {{staff_id|tojson}} + '/setting';
+            })
+	}
+
+	
+	function settingRemark(status) {
+        var update_remark = ''
+        var new_remark = ''
+        if (status == 'new') {
+                var input = prompt("備考テンプレート")
+                if (!input) {
+                        alert("キャンセルしました")
+                        return
+                } else if (input != '') {
+                        new_remark = input
+                } else if (input == '') {
+                        alert("入力して下さい")
+                        return
+                }
+        } else if (document.getElementById('select_remark').value == '') {
+                alert("備考テンプレートを選択して下さい")
+                return
+        } else if (status == 'delete') {
+                var result = confirm(document.getElementById('select_remark').value + "を削除しますか？");
+                // 'いいえ'が選択された場合
+                if (!result) {
+                        alert("キャンセルしました");
+                        return;
+                }
+        } else if (status == 'update') {
+                var input = prompt("備考テンプレート:")
+                if (!input) {
+                        alert("キャンセルしました")
+                        return
+                }else if (input != '') {
+                        update_remark = input
+                } else if (input == '') {
+                        alert("入力して下さい")
+                        return
+                }
+        }
+
+        var post_data = {
+            remark_status: status,
+            remark: document.getElementById('select_remark').value,
+            update_remark: update_remark,
+            new_remark: new_remark,
+        }
+        fetch('/setting_remark', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(post_data)
+            }).then(res => {
+            alert('更新しました')
+	    page_update()
+            window.location.href = '/' + {{staff_id|tojson}} + '/setting';
+            })
+	
+        }
+
+
+</script>
+{% endblock %}
