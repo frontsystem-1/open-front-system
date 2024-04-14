@@ -26,7 +26,7 @@ print(cr.card_type)
 #db接続
 try:
     connection = MySQLdb.connect(
-    host='172.18.0.2',
+    host=MySQL IPAddress,
     user='root',
     password='mypassword',
     db='exit_entrance_management',
