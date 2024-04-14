@@ -80,7 +80,7 @@ class MyCardReader(object):
     #非同期でmysqlに接続し、受け取ったデータにひとり外出可能な入居者がいるか・職員かを識別。
     async def db_set(self,loop,tag,time_data):
         pool = await aiomysql.create_pool(
-        host='172.18.0.2',
+        host=MySQL IPAddress,
         user='root',
         password='mypassword',
         db='exit_entrance_management',
